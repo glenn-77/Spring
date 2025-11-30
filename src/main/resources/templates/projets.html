@@ -131,7 +131,12 @@
 
         <tr th:each="p : ${projets}">
             <td th:text="${p.id}"></td>
-            <td th:text="${p.departement.nom}"></td>
+            <td>
+                <span th:if="${p.departement != null}"
+                      th:text="${p.departement.nom}">
+                </span>
+                <span th:if="${p.departement == null}" class="text-muted">-</span>
+            </td>
             <td th:text="${p.nom}"></td>
             <td th:text="${p.description}"></td>
             <td th:text="${p.dateDebut}"></td>
