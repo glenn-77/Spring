@@ -1,0 +1,54 @@
+/* --- CARDS --- */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px;
+    padding: 40px;
+    background: white;
+}
+
+.card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+}
+
+.icon {
+    font-size: 40px;
+    color: #6a39ff;
+    margin-bottom: 10px;
+}
+
+.card h3 {
+    margin: 10px 0;
+}
+
+.card p {
+    color: #555;
+    font-size: 0.9rem;
+    height: 60px;
+}
+
+/* --- BUTTON --- */
+.cards .btn {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 20px;
+    background:#6a39ff;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.btn:hover {
+    background: #532ccc;
+}

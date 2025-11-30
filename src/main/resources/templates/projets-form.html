@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulaire Projet</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        nav.navbar {
+            padding: 0.8rem 1rem;
+        }
+        .nav-link {
+            color: white !important;
+            margin-left: 1rem;
+            transition: color 0.2s, background-color 0.2s;
+            border-radius: 6px;
+            padding: 6px 10px;
+        }
+        .nav-link:hover {
+            background-color: white !important;
+            color: #0d6efd !important;
+        }
+        .btn-logout {
+            background-color: #dc3545;
+            border: none;
+            padding: 0.45rem 0.9rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 500;
+            margin-left: 1rem;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-logout:hover {
+            background-color: white;
+            color: #dc3545;
+            border: 1px solid #dc3545;
+        }
+        footer {
+            background-color: #0d6efd;
+            color: #fff;
+            text-align: center;
+            padding: 0.8rem;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+        .welcome {
+            text-align: center;
+            margin-top: 7rem;
+        }
+    </style>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <div class="container">
+            <!-- Bouton Accueil -->
+            <a class="navbar-brand fw-bold" th:href="@{/index}">Système RH</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/index}">Accueil</a>
+                    </li>
+
+                    <li class="nav-item" th:if="${session.role == 'ADMINISTRATEUR'}">
+                        <a class="nav-link" th:href="@{/employes}">Employés</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/departements}">Départements</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/projets}">Projets</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/fiches}">Fiches de paie</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/profil}">Mon Profil</a>
+                    </li>
+
+                    <li class="nav-item ms-2">
+                        <a class="btn btn-logout btn-sm" th:href="@{/logout}">Déconnexion</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="card shadow-sm p-4 mx-auto" style="max-width:750px;">
+
+        <h2 class="text-center mb-4"
+            th:text="${projet.id == null ? 'Créer un Projet' : 'Modifier un Projet'}">
+        </h2>
+
+        <form th:action="@{/projets/save}" method="post">
+
+            <input type="hidden" name="id" th:value="${projet.id}">
+
+            <!-- NOM -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Nom du projet :</label>
+                <input type="text" class="form-control only-letters" name="nom"
+                       th:value="${projet.nom}" th:disabled="${not(session.role == 'ADMINISTRATEUR' || session.role == 'CHEF_DE_DEPARTEMENT')}" required>
+            </div>
+
+            <!-- DÉPARTEMENT -->
+            <div class="mb-3">
+                <label for="departement-select" class="form-label fw-semibold">Département :</label>
+                <select class="form-select"
+                        name="departementId"
+                        id="departement-select"
+                        th:disabled="${session.role != 'ADMINISTRATEUR'}">
+
+                    <option value="">-- Sélectionner un département --</option>
+
+                    <option th:each="d : ${departements}"
+                            th:value="${d.id}"
+                            th:selected="${projet.departement != null && projet.departement.id == d.id}"
+                            th:text="${d.nom}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- DESCRIPTION -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Description :</label>
+                <textarea class="form-control" name="description" rows="3"
+                          th:text="${projet.description}" th:disabled="${not(session.role == 'ADMINISTRATEUR' || session.role == 'CHEF_DE_DEPARTEMENT')}"></textarea>
+            </div>
+
+            <!-- BUDGET -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Budget (€)</label>
+                <input type="number" step="0.01" class="form-control" name="budget"
+                       th:value="${projet.budget}" th:disabled="${not(session.role == 'ADMINISTRATEUR' || session.role == 'CHEF_DE_DEPARTEMENT')}">
+            </div>
+
+            <!-- ÉTAT -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">État :</label>
+                <select class="form-select" name="etat" required>
+                    <option th:each="etat : ${T(com.spring.model.EtatProjet).values()}"
+                            th:value="${etat}"
+                            th:selected="${projet.etat == etat}"
+                            th:text="${etat}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- DATES -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold">Date de début :</label>
+                    <input type="date" class="form-control" name="dateDebut"
+                           th:value="${projet.dateDebut}" th:disabled="${not(session.role == 'ADMINISTRATEUR' || session.role == 'CHEF_DE_DEPARTEMENT')}">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold">Date de fin :</label>
+                    <input type="date" class="form-control" name="dateFin"
+                           th:value="${projet.dateFin}" th:disabled="${not(session.role == 'ADMINISTRATEUR' || session.role == 'CHEF_DE_DEPARTEMENT')}">
+                </div>
+            </div>
+
+            <!-- CHEF DE PROJET -->
+            <div class="mb-3">
+                <label for="chef-select" class="form-label fw-semibold">Chef de Projet :</label>
+                <select class="form-select" name="chefProjetId" id="chef-select" th:disabled="${not(session.role == 'ADMINISTRATEUR' || session.role == 'CHEF_DE_DEPARTEMENT')}">
+                </select>
+            </div>
+
+            <!-- EMPLOYÉS ASSIGNÉS -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Employés affectés :</label>
+
+                <div class="border rounded p-3" id="employes-container"
+                     style="max-height:250px; overflow-y:auto;">
+                </div>
+
+            </div>
+
+            <div class="text-center mt-4">
+                <button class="btn btn-primary px-4"
+                        th:text="${projet.id == null ? 'Créer' : 'Mettre à jour'}">
+                </button>
+
+                <a th:href="@{/projets}" class="btn btn-secondary ms-2">Annuler</a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+<script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", () => {
+        const departementSelect = document.getElementById("departement-select");
+        const chefSelect = document.getElementById("chef-select");
+        const employesContainer = document.getElementById("employes-container");
+
+        // Valeurs déjà existantes du projet (si on est en mode édition)
+        const projetId = document.querySelector("input[name='id']").value;
+        const selectedChefId = /*[[${projet.chefProjet != null ? projet.chefProjet.id : 'null'}]]*/ null;
+        const selectedEmployes = /*[[${projet.employes != null ? projet.employes.![id] : '[]'}]]*/ [];
+
+        function updateLists(deptId) {
+            if (!deptId) return;
+
+            // 1) Charger les chefs de projet
+            fetch(`/employes/chefs/${deptId}`)
+                .then(res => res.json())
+                .then(chefs => {
+                    chefSelect.innerHTML = `<option value="">-- Aucun chef --</option>`;
+
+                    chefs.forEach(c => {
+                        const selected = (selectedChefId && selectedChefId === c.id) ? "selected" : "";
+                        chefSelect.innerHTML += `
+                        <option value="${c.id}" ${selected}>
+                            ${c.prenom} ${c.nom}
+                        </option>`;
+                    });
+                });
+
+            // 2) Charger les employés NON chefs
+            fetch(`/employes/departement/${deptId}/non-chefs`)
+                .then(res => res.json())
+                .then(emps => {
+                    employesContainer.innerHTML = "";
+
+                    emps.forEach(e => {
+                        const checked = selectedEmployes.includes(e.id) ? "checked" : "";
+                        employesContainer.innerHTML += `
+                        <div class="form-check">
+                            <input th:if="${e.nomRole === 'EMPLOYE'}" class="form-check-input"
+                                type="checkbox"
+                                name="employesIds"
+                                value="${e.id}"
+                                id="emp${e.id}"
+                                ${checked}>
+                            <label class="form-check-label" for="emp${e.id}">
+                                ${e.prenom} ${e.nom}
+                            </label>
+                        </div>`;
+                    });
+                });
+        }
+
+        // Quand on change le département → mise à jour
+        departementSelect.addEventListener("change", () => {
+            updateLists(departementSelect.value);
+        });
+
+        // Si on est en mode édition → charger automatiquement les valeurs
+        if (departementSelect.value) {
+            updateLists(departementSelect.value);
+        }
+    });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+        // LETTRES UNIQUEMENT
+        document.querySelectorAll(".only-letters").forEach(input => {
+            input.addEventListener("input", () => {
+                // Garde uniquement lettres + accents + espace + tirets
+                input.value = input.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s-]/g, "");
+            });
+        });
+
+    });
+</script>
+
+</body>
+</html>

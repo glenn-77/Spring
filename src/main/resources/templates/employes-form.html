@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulaire Employé</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        nav.navbar {
+            padding: 0.8rem 1rem;
+        }
+        .nav-link {
+            color: white !important;
+            margin-left: 1rem;
+            transition: color 0.2s, background-color 0.2s;
+            border-radius: 6px;
+            padding: 6px 10px;
+        }
+        .nav-link:hover {
+            background-color: white !important;
+            color: #0d6efd !important;
+        }
+        .btn-logout {
+            background-color: #dc3545;
+            border: none;
+            padding: 0.45rem 0.9rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 500;
+            margin-left: 1rem;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-logout:hover {
+            background-color: white;
+            color: #dc3545;
+            border: 1px solid #dc3545;
+        }
+        footer {
+            background-color: #0d6efd;
+            color: #fff;
+            text-align: center;
+            padding: 0.8rem;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+        .welcome {
+            text-align: center;
+            margin-top: 7rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+    <div class="container">
+        <!-- Bouton Accueil -->
+        <a class="navbar-brand fw-bold" th:href="@{/index}">Système RH</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/index}">Accueil</a>
+                </li>
+
+                <li class="nav-item" th:if="${session.role == 'ADMINISTRATEUR'}">
+                    <a class="nav-link" th:href="@{/employes}">Employés</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/departements}">Départements</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/projets}">Projets</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/fiches}">Fiches de paie</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/profil}">Mon Profil</a>
+                </li>
+
+                <li class="nav-item ms-2">
+                    <a class="btn btn-logout btn-sm" th:href="@{/logout}">Déconnexion</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <div class="card shadow-sm p-4 mx-auto" style="max-width:700px;">
+
+        <h2 class="text-center mb-4"
+            th:text="${employe.id == null ? 'Créer un Employé' : 'Modifier un Employé'}"></h2>
+
+        <form th:action="@{/employes/save}" th:object="${employe}" method="post">
+
+            <input type="hidden" th:field="*{id}">
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label">Nom :</label>
+                    <input type="text" class="form-control only-letters" th:field="*{nom}" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Prénom :</label>
+                    <input type="text" class="form-control only-letters" th:field="*{prenom}" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Email :</label>
+                    <input type="email" class="form-control" th:field="*{email}" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Adresse :</label>
+                    <input type="text" class="form-control" th:field="*{adresse}">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Téléphone :</label>
+                    <input type="text" inputmode="numeric" class="form-control only-numbers" th:field="*{telephone}">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Poste :</label>
+                    <input type="text" class="form-control only-letters" th:field="*{poste}">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Grade :</label>
+                    <select class="form-select" name="grade" th:field="*{grade}" required>
+                        <option value="">-- Choisir un grade --</option>
+
+                        <option value="JUNIOR">Junior</option>
+                        <option value="INTERMEDIAIRE">Intermédiaire</option>
+                        <option value="SENIOR">Senior</option>
+                        <option value="STAGIAIRE">Stagiaire</option>
+                        <option value="MANAGER">Manager</option>
+                        <option value="DIRECTEUR">Directeur</option>
+                    </select>
+                </div>
+
+                <!-- DÉPARTEMENT -->
+                <div class="col-md-6">
+                    <label class="form-label">Département :</label>
+                    <select class="form-select" name="departementId" th:disabled="${session.user.employe.id == employe.id }">
+                        <option value="">-- Aucun --</option>
+
+                        <option th:each="d : ${departements}"
+                                th:value="${d.id}"
+                                th:selected="${employe.departement != null && employe.departement.id == d.id}"
+                                th:text="${d.nom}">
+                        </option>
+                    </select>
+                </div>
+
+                <!-- RÔLE UTILISATEUR -->
+                <div class="col-md-6">
+                    <label class="form-label">Rôle utilisateur :</label>
+                    <select class="form-select" name="role" required th:disabled="${session.user.employe.id == employe.id }">
+                        <option value="">-- Choisir un rôle --</option>
+
+                        <option value="EMPLOYE">Employé</option>
+                        <option value="CHEF_DE_PROJET">Chef de projet</option>
+                        <option value="CHEF_DE_DEPARTEMENT">Chef de département</option>
+                        <option value="ADMINISTRATEUR">Administrateur</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-primary px-4"
+                        th:text="${employe.id == null ? 'Créer' : 'Mettre à jour'}"></button>
+
+                <a th:href="@{/employes}" class="btn btn-secondary ms-2">Annuler</a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+        // 🔤 LETTRES UNIQUEMENT
+        document.querySelectorAll(".only-letters").forEach(input => {
+            input.addEventListener("input", () => {
+                // Garde uniquement lettres + accents + espace + tirets
+                input.value = input.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s-]/g, "");
+            });
+        });
+
+        // 🔢 CHIFFRES UNIQUEMENT
+        document.querySelectorAll(".only-numbers").forEach(input => {
+            input.addEventListener("input", () => {
+                // Garde uniquement chiffres
+                input.value = input.value.replace(/[^0-9]/g, "");
+            });
+        });
+
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulaire Département</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        nav.navbar {
+            padding: 0.8rem 1rem;
+        }
+        .nav-link {
+            color: white !important;
+            margin-left: 1rem;
+            transition: color 0.2s, background-color 0.2s;
+            border-radius: 6px;
+            padding: 6px 10px;
+        }
+        .nav-link:hover {
+            background-color: white !important;
+            color: #0d6efd !important;
+        }
+        .btn-logout {
+            background-color: #dc3545;
+            border: none;
+            padding: 0.45rem 0.9rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 500;
+            margin-left: 1rem;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-logout:hover {
+            background-color: white;
+            color: #dc3545;
+            border: 1px solid #dc3545;
+        }
+        footer {
+            background-color: #0d6efd;
+            color: #fff;
+            text-align: center;
+            padding: 0.8rem;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+        .welcome {
+            text-align: center;
+            margin-top: 7rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+    <div class="container">
+        <!-- Bouton Accueil -->
+        <a class="navbar-brand fw-bold" th:href="@{/index}">Système RH</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/index}">Accueil</a>
+                </li>
+
+                <li class="nav-item" th:if="${session.role == 'ADMINISTRATEUR'}">
+                    <a class="nav-link" th:href="@{/employes}">Employés</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/departements}">Départements</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/projets}">Projets</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/fiches}">Fiches de paie</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/profil}">Mon Profil</a>
+                </li>
+
+                <li class="nav-item ms-2">
+                    <a class="btn btn-logout btn-sm" th:href="@{/logout}">Déconnexion</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <div class="card shadow-sm p-4 mx-auto" style="max-width:650px;">
+
+        <h2 class="text-center mb-4">
+            <span th:if="${departement.id == null}">Créer un Département</span>
+            <span th:if="${departement.id != null}">Modifier un Département</span>
+        </h2>
+
+        <form th:action="@{/departements/save}" method="post" th:object="${departement}">
+
+            <!-- ID HIDDEN -->
+            <input type="hidden" th:field="*{id}">
+
+            <!-- NOM -->
+            <div class="mb-3">
+                <label class="form-label">Nom :</label>
+                <input type="text" class="form-control only-letters" th:field="*{nom}" th:disabled="${not(session.role == 'ADMINISTRATEUR')}" required>
+            </div>
+
+            <!-- CHEF = uniquement rôle CHEF_DE_DEPARTEMENT -->
+            <div class="mb-3">
+                <label class="form-label">Chef de département :</label>
+                <select class="form-select" name="chefId" th:disabled="${not(session.role == 'ADMINISTRATEUR')}">
+                    <option value="">-- Aucun chef --</option>
+
+                    <option th:each="e : ${employes}"
+                            th:if="${e.roleNom != null and e.roleNom == 'CHEF_DE_DEPARTEMENT'}"
+                            th:value="${e.id}"
+                            th:selected="${departement.chef != null and departement.chef.id == e.id}"
+                            th:text="${e.prenom + ' ' + e.nom}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- EMPLOYÉS = tous sauf les chefs -->
+            <div class="mb-3">
+                <label class="form-label">Employés du département :</label>
+
+                <div class="border p-3 rounded" style="max-height:250px; overflow-y:auto;">
+                    <div class="form-check"
+                         th:each="e : ${employes}"
+                         th:if="${e.roleNom == null or e.roleNom != 'CHEF_DE_DEPARTEMENT' or e.roleNom != 'ADMINISTRATEUR'}">
+
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="employesIds"
+                               th:id="${'emp' + e.id}"
+                               th:value="${e.id}"
+                               th:checked="${departement.employes != null and #lists.contains(departement.employes, e)}"
+                               th:disabled="${not(session.role == 'ADMINISTRATEUR' || session.role == 'CHEF_DE_DEPARTEMENT')}">
+
+                        <label class="form-check-label" th:for="${'emp' + e.id}"
+                               th:text="${e.prenom + ' ' + e.nom}">
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <button class="btn btn-primary px-4" type="submit">Enregistrer</button>
+                <a class="btn btn-secondary ms-2" th:href="@{/departements}">Annuler</a>
+            </div>
+
+        </form>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+        // LETTRES UNIQUEMENT
+        document.querySelectorAll(".only-letters").forEach(input => {
+            input.addEventListener("input", () => {
+                // Garde uniquement lettres + accents + espace + tirets
+                input.value = input.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s-]/g, "");
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
